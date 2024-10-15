@@ -27,7 +27,7 @@ import kotlin.math.log
 
 
 @Composable
-fun LoginScreen(){
+fun LoginScreen(onNavigateToSignup: () -> Unit){
 
     //variable
     var email by remember { mutableStateOf("") }
@@ -72,6 +72,13 @@ fun LoginScreen(){
         //end button
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // create account
+
+        Text(text = "Don't have an account?", modifier = Modifier.clickable { onNavigateToSignup() })
+        Spacer(modifier = Modifier.height(16.dp))
+
+
 
         // login wiht
         Text(text="Or login with")
