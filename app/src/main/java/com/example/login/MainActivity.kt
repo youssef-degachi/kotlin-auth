@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
+        setContent {g
             var isLoginScreen by remember { mutableStateOf(true) }
             var showHomePage by remember { mutableStateOf(false) }
 
