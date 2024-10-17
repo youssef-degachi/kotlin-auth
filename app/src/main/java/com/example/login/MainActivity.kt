@@ -2,6 +2,7 @@ package com.example.login
 
 
 import HomePage
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,38 +12,45 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.login.LoginScreen
 import com.example.login.SignupScreen
 
 
 class MainActivity : ComponentActivity() {
+
+//    companion object {
+//        val context = LocalContext.current
+//        val PREFS_NAME = "myPrefs"
+//    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {g
-            var isLoginScreen by remember { mutableStateOf(true) }
+        setContent {
+            val context = LocalContext.current
+            val PREFS_NAME = "myPrefs"
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             var showHomePage by remember { mutableStateOf(false) }
+
+            // Check if email exists in SharedPreferences
+            if (prefs.getString("email", "")?.isNotEmpty() == true) {
+                showHomePage = true
+            }
 
             if (showHomePage) {
                 HomePage(onLogout = {
+                    // Clear preferences and navigate back to login
+                    prefs.edit().remove("email").apply()
                     showHomePage = false
-                    isLoginScreen = true // Go back to login
                 })
             } else {
-                if (isLoginScreen) {
-                    LoginScreen(
-                        onNavigateToSignup = { isLoginScreen = false },
-                        onNavigateToHome = { showHomePage = true },
-                        context = this
-                    )
-                } else {
-                    SignupScreen(
-                        onNavigateToLogin = { isLoginScreen = true },
-                        onNavigateToHome = { showHomePage = true },
-                        context = this
-                    )
-                }
+                LoginScreen(
+                    onNavigateToSignup = { /* Handle signup navigation */ },
+                    onNavigateToHome = { showHomePage = true },
+                    context = context
+                )
+            }
             }
         }
     }
-}

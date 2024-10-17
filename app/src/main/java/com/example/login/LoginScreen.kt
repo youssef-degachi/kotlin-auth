@@ -2,6 +2,7 @@ package com.example.login
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,12 +29,10 @@ import androidx.compose.ui.unit.sp
 import java.io.File
 import kotlin.math.log
 
-
-
 @Composable
 fun LoginScreen(onNavigateToSignup: () -> Unit, onNavigateToHome: () -> Unit, context: Context) {
     var email by remember { mutableStateOf("") }
-    var psw by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
     Column(
@@ -50,8 +50,8 @@ fun LoginScreen(onNavigateToSignup: () -> Unit, onNavigateToHome: () -> Unit, co
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = psw,
-            onValueChange = { psw = it },
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation()
         )
@@ -62,11 +62,17 @@ fun LoginScreen(onNavigateToSignup: () -> Unit, onNavigateToHome: () -> Unit, co
             val usersFile = File(context.filesDir, "users.txt")
             if (usersFile.exists()) {
                 val users = usersFile.readLines()
-                val userExists = users.any { it == "$email:$psw" }
+                val userExists = users.any { it == "$email:$password" }
                 if (userExists) {
+                    context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+                        .edit()
+                        .putString("email", email)
+                        .apply()
+                    Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
                     Log.i("Login", "Login success for $email")
-                    onNavigateToHome() // Go to HomePage
+                    onNavigateToHome() // Navigate to HomePage
                 } else {
+                    Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
                     errorMessage = "Invalid email or password"
                 }
             }
@@ -75,25 +81,6 @@ fun LoginScreen(onNavigateToSignup: () -> Unit, onNavigateToHome: () -> Unit, co
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Forgot Password", modifier = Modifier.clickable {})
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = "Don't have an account?", modifier = Modifier.clickable { onNavigateToSignup() })
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = "Or login with")
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            Image(painter = painterResource(id = R.drawable.google), contentDescription = "google",
-                modifier = Modifier.size(60.dp).clickable {  })
-            Image(painter = painterResource(id = R.drawable.facebook), contentDescription = "facebook",
-                modifier = Modifier.size(60.dp).clickable {  })
-        }
-
         if (errorMessage.isNotEmpty()) {
             Text(text = errorMessage, color = androidx.compose.ui.graphics.Color.Red)
         }
