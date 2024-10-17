@@ -1,5 +1,6 @@
 package com.example.login
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -23,17 +24,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.io.File
 import kotlin.math.log
 
 
-@Composable
-fun LoginScreen(onNavigateToSignup: () -> Unit){
 
-    //variable
+@Composable
+fun LoginScreen(onNavigateToSignup: () -> Unit, onNavigateToHome: () -> Unit, context: Context) {
     var email by remember { mutableStateOf("") }
     var psw by remember { mutableStateOf("") }
-    //end variable
-
+    var errorMessage by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -41,47 +41,48 @@ fun LoginScreen(onNavigateToSignup: () -> Unit){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(painter = painterResource(id = R.drawable.loginimage), contentDescription = "login image",
-                modifier = Modifier.size(200.dp))
+            modifier = Modifier.size(200.dp))
+        Text(text = "Welcome Back", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
-        Text(text = "Welcome Back",fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email address") })
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = psw,
+            onValueChange = { psw = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation()
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Login to your account")
-
-        // input
-        OutlinedTextField(value = email, onValueChange = {
-            email = it
-        },label = { Text(text = "Email address")})
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = psw, onValueChange = {
-            psw = it
-        },label = { Text(text = "Password")}
-        ,visualTransformation = PasswordVisualTransformation())
-        //end input
-
-        Spacer(modifier = Modifier.height(16.dp))
-        // button
         Button(onClick = {
-            Log.i("Login","Email: $email, Password: $psw")
-        }){
+            val usersFile = File(context.filesDir, "users.txt")
+            if (usersFile.exists()) {
+                val users = usersFile.readLines()
+                val userExists = users.any { it == "$email:$psw" }
+                if (userExists) {
+                    Log.i("Login", "Login success for $email")
+                    onNavigateToHome() // Go to HomePage
+                } else {
+                    errorMessage = "Invalid email or password"
+                }
+            }
+        }) {
             Text(text = "Login")
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Forgot Password", modifier = Modifier.clickable{})
-        //end button
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // create account
+        Text(text = "Forgot Password", modifier = Modifier.clickable {})
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "Don't have an account?", modifier = Modifier.clickable { onNavigateToSignup() })
+
         Spacer(modifier = Modifier.height(16.dp))
 
-
-
-        // login wiht
-        Text(text="Or login with")
+        Text(text = "Or login with")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -93,8 +94,8 @@ fun LoginScreen(onNavigateToSignup: () -> Unit){
                 modifier = Modifier.size(60.dp).clickable {  })
         }
 
-
-
-
+        if (errorMessage.isNotEmpty()) {
+            Text(text = errorMessage, color = androidx.compose.ui.graphics.Color.Red)
+        }
     }
 }

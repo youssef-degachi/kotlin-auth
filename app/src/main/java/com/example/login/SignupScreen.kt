@@ -1,5 +1,6 @@
 package com.example.login
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -25,19 +26,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.io.File
 import kotlin.math.log
 
 
 @Composable
-fun SignupScreen(onNavigateToLogin: () -> Unit){
-
-    //variable
+fun SignupScreen(onNavigateToLogin: () -> Unit, onNavigateToHome: () -> Unit, context: Context) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var psw by remember { mutableStateOf("") }
-    //end variable
-
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -46,49 +44,50 @@ fun SignupScreen(onNavigateToLogin: () -> Unit){
     ) {
         Image(painter = painterResource(id = R.drawable.loginimage), contentDescription = "login image",
             modifier = Modifier.size(200.dp))
-        Text(text = "Welcome",fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(text = "Welcome", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Create your account")
+        OutlinedTextField(value = firstName, onValueChange = { firstName = it }, label = { Text("First Name") })
+        Spacer(modifier = Modifier.height(16.dp))
 
-        //input
+        OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Last Name") })
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email address") })
+        Spacer(modifier = Modifier.height(16.dp))
+
         OutlinedTextField(
-            value = firstName,
-            onValueChange = { firstName = it },
-            label = { Text(text = "First Name") }
+            value = psw,
+            onValueChange = { psw = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation()
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = lastName,
-            onValueChange = { lastName = it },
-            label = { Text(text = "Last Name") }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = email, onValueChange = {
-            email = it
-        },label = { Text(text = "Email address")})
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = psw, onValueChange = {
-            psw = it
-        },label = { Text(text = "Password")}
-            ,visualTransformation = PasswordVisualTransformation())
-        //end input
 
         Spacer(modifier = Modifier.height(16.dp))
-        // button
+
         Button(onClick = {
-            Log.i("Login","Email: $email, Password: $psw")
-        }){
-            Text(text = "Login")
+            val usersFile = File(context.filesDir, "users.txt")
+            val newUser = "$email:$psw"
+            val users = if (usersFile.exists()) usersFile.readLines() else emptyList()
+            if (users.any { it.startsWith("$email:") }) {
+                Log.i("Signup", "User already exists")
+            } else {
+                usersFile.appendText("\n$newUser")
+                Log.i("Signup", "New user added: $email")
+                onNavigateToHome() // Go to HomePage
+            }
+        }) {
+            Text(text = "Signup")
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Already have an account?", modifier = Modifier.clickable { onNavigateToLogin() })        //end button
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // login wiht
-        Text(text="Or signup with")
+        Text(text = "Already have an account?", modifier = Modifier.clickable { onNavigateToLogin() })
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "Or signup with")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -99,9 +98,5 @@ fun SignupScreen(onNavigateToLogin: () -> Unit){
             Image(painter = painterResource(id = R.drawable.facebook), contentDescription = "facebook",
                 modifier = Modifier.size(60.dp).clickable {  })
         }
-
-
-
-
     }
 }
